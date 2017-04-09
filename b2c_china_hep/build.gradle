@@ -1,0 +1,138 @@
+def hybris_root_dir=new  File("${rootProject.rootDir}").parent;
+def custom=new File(hybris_root_dir+File.separator+"hybris"+File.separator+"bin"+File.separator+"custom")
+def configDir=new File(hybris_root_dir+File.separator+"hybris"+File.separator+"config")
+//拷贝新版
+def existsFlag=configDir.exists()
+if(existsFlag){
+		println "存在config,开始copy"
+		copy{
+			from(configDir.path){
+				include('local.properties','localextensions.xml')
+			}
+			into("${rootProject.rootDir}"+File.separator+"customconfig")
+		}
+	}
+
+def config = {
+		localProperties {
+			if(configDir.exists()){
+				customConfig 'local.properties'
+			}else{
+			
+				property 'website.electronics.http', 'http://electronics.local:9001/hepstorefront'
+				property 'website.electronics.https', 'https://electronics.local:9002/heptorefront'
+				property 'commerceservices.default.desktop.ui.experience', 'responsive'
+				property 'uiexperience.level.supported', 'DESKTOP'
+				property 'csrf.allowed.url.patterns','/[^/]+(/[^?]*)+(sop/response)$,/[^/]+(/[^?]*)+(merchant_callback)$,/[^/]+(/[^?]*)+(hop/response)$,/[^/]+(/[^?]*)+(language)$,/[^/]+(/[^?]*)+(currency)$,/[^/]+(/[^?]*)+(alipay)+/(.)*$,/[^/]+(/[^?]*)+(wechat)+/(.)*$'
+			}
+		}
+		extensions {
+			if(configDir.exists()){
+				customConfig 'localextensions.xml'
+			}else{
+				extName 'mcc'
+				extName 'backoffice'
+				extName 'commercesearchbackoffice'
+				extName 'commerceservicesbackoffice'
+				extName 'solrfacetsearchbackoffice'
+				extName 'solrserver'
+				extName 'yacceleratorcockpits'
+				extName 'yacceleratorinitialdata'
+				extName 'yacceleratorstorefront'
+				extName 'yaddon'
+				extName 'ycommercewebservices'
+				extName 'yacceleratorfulfilmentprocess'
+				extName 'electronicsstore'
+				extName 'addonsupport'
+				extName 'liveeditaddon'
+				extName 'acceleratorwebservicesaddon'
+				extName 'customersupportbackoffice'
+				extName 'customerticketingaddon'
+				extName 'commerceorgsamplesaddon'
+				extName 'chineseprofileaddon'
+				extName 'chineselogisticaddon'
+				extName 'chineselogisticbackoffice'
+				extName 'chinesepaymentaddon'
+				extName 'chinesetaxinvoiceaddon'
+				extName 'chinesetaxinvoicebackoffice'
+				extName 'chinesepspalipaymockaddon'
+				extName 'chinesepspalipaysbackoffice'
+				extName 'chinesestoreaddon'
+				extName 'verticalnavigationaddon'
+				extName 'rulebuilderbackoffice'
+				extName 'couponbackoffice'
+				extName 'droolsruleengineservices'
+				extName 'couponfacades'
+				extName 'promotionenginesamplesaddon'
+				extName 'chineseaddressaddon'
+				extName 'chineseaddressbackoffice'		
+				extName 'chinesepspwechatpaymentaddon'
+				extName 'chinesepspwechatpaysbackoffice'
+				extName 'consignmenttrackingaddon'
+				extName 'consignmenttrackingmockaddon'
+				extName 'consignmenttrackingbackoffice'
+				extName 'notificationaddon'
+				extName 'customerinterestsaddon'
+				extName 'stocknotificationaddon'
+				extName 'chineseproductsharingaddon'
+			}
+		}
+}
+
+task setup << {
+
+		apply plugin: 'installer-platform-plugin'
+		apply plugin: 'installer-addon-plugin'
+
+
+		def pl = platform(config)
+		pl.setup()
+
+		pl.extensions {
+			extName 'hepcockpits'
+			extName 'hepcore'
+			extName 'hepfacades'
+			extName 'hepfulfilmentprocess'
+			extName 'hepinitialdata'
+			extName 'hepstorefront'
+			extName 'heptest'
+			extName 'backoffice'
+			extName 'basecommercebackoffice'
+			extName 'platformbackoffice'
+		}
+
+		pl.setup()
+
+		pl.project.addons {
+			names "promotionenginesamplesaddon,chinesestoreaddon"
+			template "yacceleratorstorefront"
+			storeFronts "hepstorefront"
+			platform pl
+		}
+
+		pl.project.addons {
+			names "liveeditaddon,chinesepaymentaddon,chinesepspalipaymockaddon,verticalnavigationaddon,chinesepspwechatpaymentaddon"
+			template "yacceleratorstorefront"
+			storeFronts "hepstorefront"
+			platform pl
+		}
+
+		delete{
+			"${rootProject.rootDir}"+File.separator+"customconfig"
+		}
+
+}
+
+task initialize << {
+		apply plugin: 'installer-platform-plugin'
+		def pl = platform(config)
+		pl.build()
+		pl.initialize()
+}
+
+
+task start << {
+		apply plugin: 'installer-platform-plugin'
+		def pl = platform(config)
+		pl.start()
+}
